@@ -19,13 +19,28 @@
                 <span class="brand-name">Spendly</span>
             </a>
             <div class="nav-links">
+                {% if session.user_id %}
+                <span class="nav-user">{{ session.user_name }}</span>
+                <a href="{{ url_for('logout') }}" class="nav-cta">Sign out</a>
+                {% else %}
                 <a href="{{ url_for('login') }}">Sign in</a>
                 <a href="{{ url_for('register') }}" class="nav-cta">Get started</a>
+                {% endif %}
             </div>
         </div>
     </nav>
 
     <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-stack">
+            {% for category, message in messages %}
+            {% set flash_class = {"success": "auth-success", "error": "auth-error"}.get(category, "flash-info") %}
+            <div class="{{ flash_class }}" role="status">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
         {% block content %}{% endblock %}
     </main>
 

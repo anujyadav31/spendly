@@ -27,8 +27,47 @@ with app.app_context():
 DUPLICATE_EMAIL_ERROR = "An account with that email already exists."
 REGISTER_SUCCESS = "Account created — please sign in"
 LOGIN_ERROR = "Invalid email or password."
-LOGIN_SUCCESS = "Welcome back, {name}!"
 LOGOUT_SUCCESS = "You've been signed out"
+
+# Hardcoded profile data for Step 4 — mirrors the seed data in database/db.py.
+# Step 5 replaces these with real queries.
+PROFILE_USER = {
+    "email": "demo@spendly.com",
+    "member_since": "October 2026",
+}
+
+PROFILE_STATS = {
+    "total_spent": 5488.50,
+    "transaction_count": 8,
+    "top_category": "Bills",
+    "top_category_total": 1850.00,
+}
+
+PROFILE_EXPENSES = [
+    {"date": "21 Oct 2026", "description": "Gift wrapping", "category": "Other", "amount": 150.00},
+    {"date": "19 Oct 2026", "description": "Dinner at restaurant", "category": "Food", "amount": 340.00},
+    {"date": "16 Oct 2026", "description": "New headphones", "category": "Shopping", "amount": 1299.00},
+    {"date": "13 Oct 2026", "description": "Movie tickets", "category": "Entertainment", "amount": 499.00},
+    {"date": "10 Oct 2026", "description": "Pharmacy - vitamins", "category": "Health", "amount": 680.00},
+    {"date": "07 Oct 2026", "description": "Uber ride to office", "category": "Transport", "amount": 250.00},
+    {"date": "04 Oct 2026", "description": "Groceries from local market", "category": "Food", "amount": 420.50},
+    {"date": "01 Oct 2026", "description": "Electricity bill", "category": "Bills", "amount": 1850.00},
+]
+
+PROFILE_CATEGORIES = [
+    {"name": "Bills", "total": 1850.00, "percent": 34},
+    {"name": "Shopping", "total": 1299.00, "percent": 24},
+    {"name": "Food", "total": 760.50, "percent": 14},
+    {"name": "Health", "total": 680.00, "percent": 12},
+    {"name": "Entertainment", "total": 499.00, "percent": 9},
+    {"name": "Transport", "total": 250.00, "percent": 5},
+    {"name": "Other", "total": 150.00, "percent": 3},
+]
+
+
+@app.template_filter("inr")
+def format_inr(amount):
+    return f"₹{amount:,.2f}"
 
 
 def normalize_email(raw):
@@ -68,7 +107,7 @@ def landing():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if "user_id" in session:
-        return redirect(url_for("landing"))
+        return redirect(url_for("profile"))
 
     if request.method == "GET":
         return render_template("register.html")
@@ -98,7 +137,7 @@ def register():
 def login():
     if request.method == "GET":
         if "user_id" in session:
-            return redirect(url_for("landing"))
+            return redirect(url_for("profile"))
         return render_template("login.html")
 
     email = normalize_email(request.form.get("email", ""))
@@ -111,8 +150,7 @@ def login():
     session.clear()
     session["user_id"] = user["id"]
     session["user_name"] = user["name"]
-    flash(LOGIN_SUCCESS.format(name=user["name"]), "success")
-    return redirect(url_for("landing"))
+    return redirect(url_for("profile"))
 
 
 @app.route("/logout")
@@ -132,13 +170,24 @@ def privacy():
     return render_template("privacy.html")
 
 
+@app.route("/profile")
+def profile():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    user = {**PROFILE_USER, "name": session["user_name"]}
+    return render_template(
+        "profile.html",
+        user=user,
+        stats=PROFILE_STATS,
+        expenses=PROFILE_EXPENSES,
+        categories=PROFILE_CATEGORIES,
+    )
+
+
 # ------------------------------------------------------------------ #
 # Placeholder routes — students will implement these                  #
 # ------------------------------------------------------------------ #
-
-@app.route("/profile")
-def profile():
-    return "Profile page — coming in Step 4"
 
 
 @app.route("/expenses/add")

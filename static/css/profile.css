@@ -1,0 +1,295 @@
+/* ------------------------------------------------------------------ */
+/* Profile page                                                        */
+/* ------------------------------------------------------------------ */
+
+.profile-page {
+    padding: 3rem 2rem 4rem;
+}
+
+.profile-container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.profile-title {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 400;
+    color: var(--ink);
+}
+
+.profile-subtitle {
+    margin-top: 0.25rem;
+    color: var(--ink-muted);
+}
+
+.profile-card {
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+}
+
+.profile-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.profile-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 1rem;
+}
+
+/* --- User card ------------------------------------------------------ */
+
+.profile-user {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.profile-avatar {
+    flex-shrink: 0;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 999px;
+    background: var(--accent-light);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.125rem;
+}
+
+.profile-user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.profile-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.profile-email {
+    color: var(--ink-muted);
+    font-size: 0.875rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.profile-member {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+}
+
+.profile-member-date {
+    font-weight: 500;
+    color: var(--ink-soft);
+}
+
+/* --- Stats ---------------------------------------------------------- */
+
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.profile-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.profile-stat-value {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.profile-stat-note {
+    font-size: 0.75rem;
+    color: var(--ink-faint);
+}
+
+/* --- Grid ----------------------------------------------------------- */
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+/* --- Transaction table ---------------------------------------------- */
+
+.tx-table-wrap {
+    overflow-x: auto;
+}
+
+.tx-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.tx-table th {
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.tx-table td {
+    padding: 0.75rem;
+    color: var(--ink-soft);
+    border-bottom: 1px solid var(--border-soft);
+    white-space: nowrap;
+}
+
+.tx-table tbody tr:last-child td { border-bottom: none; }
+.tx-table tbody tr:hover { background: var(--paper-warm); }
+
+.tx-table .tx-amount {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.tx-table td.tx-amount {
+    font-weight: 500;
+    color: var(--ink);
+}
+
+.tx-date { color: var(--ink-muted); }
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+/* --- Category colours ----------------------------------------------- */
+
+.cat-food          { --cat-color: var(--cat-food);          --cat-bg: var(--cat-food-light); }
+.cat-transport     { --cat-color: var(--cat-transport);     --cat-bg: var(--cat-transport-light); }
+.cat-bills         { --cat-color: var(--cat-bills);         --cat-bg: var(--cat-bills-light); }
+.cat-health        { --cat-color: var(--cat-health);        --cat-bg: var(--cat-health-light); }
+.cat-entertainment { --cat-color: var(--cat-entertainment); --cat-bg: var(--cat-entertainment-light); }
+.cat-shopping      { --cat-color: var(--cat-shopping);      --cat-bg: var(--cat-shopping-light); }
+.cat-other         { --cat-color: var(--cat-other);         --cat-bg: var(--cat-other-light); }
+
+.cat-badge {
+    display: inline-block;
+    padding: 0.125rem 0.625rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--cat-color, var(--ink-muted));
+    background: var(--cat-bg, var(--paper-warm));
+}
+
+/* --- Category breakdown --------------------------------------------- */
+
+.cat-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.cat-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+}
+
+.cat-row-head {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+}
+
+.cat-name {
+    font-weight: 500;
+    color: var(--ink-soft);
+}
+
+.cat-total {
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.cat-percent {
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    font-variant-numeric: tabular-nums;
+    min-width: 2.5rem;
+    text-align: right;
+}
+
+.cat-bar {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border: none;
+    border-radius: 999px;
+    background: var(--border-soft);
+    overflow: hidden;
+}
+
+.cat-bar::-webkit-progress-bar {
+    background: var(--border-soft);
+    border-radius: 999px;
+}
+
+.cat-bar::-webkit-progress-value {
+    background: var(--cat-color, var(--accent));
+    border-radius: 999px;
+}
+
+.cat-bar::-moz-progress-bar {
+    background: var(--cat-color, var(--accent));
+    border-radius: 999px;
+}
+
+/* --- Responsive ----------------------------------------------------- */
+
+@media (max-width: 900px) {
+    .profile-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+    .profile-page { padding: 2rem 1rem 3rem; }
+    .profile-stats { grid-template-columns: 1fr; }
+    .profile-user { flex-wrap: wrap; }
+    .profile-member {
+        flex-basis: 100%;
+        flex-direction: row;
+        align-items: baseline;
+        gap: 0.5rem;
+    }
+}

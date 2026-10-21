@@ -93,10 +93,10 @@ pytest -s
 | Route | Status |
 |---|---|
 | `GET /` | Implemented — renders `landing.html` |
-| `GET/POST /register` | Implemented — redirects to `/` if signed in; GET renders `register.html`; POST validates, creates user, flashes and redirects to `/login` |
-| `GET/POST /login` | Implemented — GET renders `login.html` (redirects to `/` if signed in); POST authenticates, sets `session["user_id"]`/`session["user_name"]`, flashes and redirects to `/` |
+| `GET/POST /register` | Implemented — redirects to `/profile` if signed in; GET renders `register.html`; POST validates, creates user, flashes and redirects to `/login` |
+| `GET/POST /login` | Implemented — GET renders `login.html` (redirects to `/profile` if signed in); POST authenticates, sets `session["user_id"]`/`session["user_name"]` and redirects to `/profile` (no welcome flash) |
 | `GET /logout` | Implemented — clears session, flashes and redirects to `/` |
-| `GET /profile` | Stub — Step 4 |
+| `GET /profile` | Implemented (Step 4) — redirects to `/login` if signed out; renders `profile.html` with hardcoded data (`PROFILE_*` constants in `app.py`); real data in Step 5 |
 | `GET /expenses/add` | Stub — Step 7 |
 | `GET /expenses/<id>/edit` | Stub — Step 8 |
 | `GET /expenses/<id>/delete` | Stub — Step 9 |

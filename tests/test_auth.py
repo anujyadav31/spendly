@@ -55,14 +55,14 @@ def test_get_login_when_signed_in_redirects(client):
     post_login(client)
     response = client.get("/login")
     assert response.status_code == 302
-    assert redirect_path(response) == "/"
+    assert redirect_path(response) == "/profile"
 
 
 def test_get_register_when_signed_in_redirects(client):
     post_login(client)
     response = client.get("/register")
     assert response.status_code == 302
-    assert redirect_path(response) == "/"
+    assert redirect_path(response) == "/profile"
 
 
 def test_post_register_when_signed_in_creates_no_user(client):
@@ -77,17 +77,17 @@ def test_post_register_when_signed_in_creates_no_user(client):
         },
     )
     assert response.status_code == 302
-    assert redirect_path(response) == "/"
+    assert redirect_path(response) == "/profile"
     assert db_module.get_user_by_email("asha@example.com") is None
     assert session_of(client)["user_name"] == "Demo User"
 
 
 # --- Successful login ------------------------------------------------ #
 
-def test_demo_login_redirects_to_landing(client):
+def test_demo_login_redirects_to_profile(client):
     response = post_login(client)
     assert response.status_code == 302
-    assert redirect_path(response) == "/"
+    assert redirect_path(response) == "/profile"
 
 
 def test_login_sets_session(client):
@@ -106,11 +106,10 @@ def test_login_clears_existing_session(client):
     assert "stale" not in session_of(client)
 
 
-def test_welcome_flash_shown_once(client):
+def test_login_shows_no_welcome_flash(client):
     html = body(post_login(client, follow_redirects=True))
-    assert "Welcome back" in html
-    assert 'class="auth-success"' in html
-    assert "Welcome back, Demo User" not in body(client.get("/"))
+    assert "Welcome back" not in html
+    assert 'class="auth-success"' not in html
 
 
 @pytest.mark.parametrize("email", ["  DEMO@Spendly.com ", "Demo@SPENDLY.COM"])

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Profile · Spendly{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="profile-page">
+    <div class="profile-container">
+
+        <header class="profile-header">
+            <h1 class="profile-title">Your profile</h1>
+            <p class="profile-subtitle">Your account and where your money went this month.</p>
+        </header>
+
+        <div class="profile-card profile-user">
+            <div class="profile-avatar" aria-hidden="true">
+                {{ (user.name.split()[:2]) | map("first") | join | upper }}
+            </div>
+            <div class="profile-user-info">
+                <h2 class="profile-name">{{ user.name }}</h2>
+                <p class="profile-email">{{ user.email }}</p>
+            </div>
+            <div class="profile-member">
+                <span class="profile-label">Member since</span>
+                <span class="profile-member-date">{{ user.member_since }}</span>
+            </div>
+        </div>
+
+        <div class="profile-stats">
+            <div class="profile-card profile-stat">
+                <span class="profile-label">Total spent</span>
+                <span class="profile-stat-value">{{ stats.total_spent | inr }}</span>
+                <span class="profile-stat-note">This month</span>
+            </div>
+            <div class="profile-card profile-stat">
+                <span class="profile-label">Transactions</span>
+                <span class="profile-stat-value">{{ stats.transaction_count }}</span>
+                <span class="profile-stat-note">This month</span>
+            </div>
+            <div class="profile-card profile-stat">
+                <span class="profile-label">Top category</span>
+                <span class="profile-stat-value">{{ stats.top_category }}</span>
+                <span class="profile-stat-note">{{ stats.top_category_total | inr }}</span>
+            </div>
+        </div>
+
+        <div class="profile-grid">
+            <div class="profile-card">
+                <h2 class="profile-section-title">Transaction history</h2>
+                <div class="tx-table-wrap">
+                    <table class="tx-table">
+                        <caption class="visually-hidden">Recent expenses</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Date</th>
+                                <th scope="col">Description</th>
+                                <th scope="col">Category</th>
+                                <th scope="col" class="tx-amount">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for expense in expenses %}
+                            <tr>
+                                <td class="tx-date">{{ expense.date }}</td>
+                                <td>{{ expense.description }}</td>
+                                <td>
+                                    <span class="cat-badge cat-{{ expense.category | lower }}">{{ expense.category }}</span>
+                                </td>
+                                <td class="tx-amount">{{ expense.amount | inr }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="profile-card">
+                <h2 class="profile-section-title">By category</h2>
+                <ul class="cat-list">
+                    {% for category in categories %}
+                    <li class="cat-row">
+                        <div class="cat-row-head">
+                            <span class="cat-name">{{ category.name }}</span>
+                            <span class="cat-total">{{ category.total | inr }}</span>
+                        </div>
+                        <progress class="cat-bar cat-{{ category.name | lower }}"
+                                  value="{{ category.percent }}" max="100"
+                                  aria-label="{{ category.name }}: {{ category.percent }}% of spending">
+                            {{ category.percent }}%
+                        </progress>
+                        <span class="cat-percent">{{ category.percent }}%</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

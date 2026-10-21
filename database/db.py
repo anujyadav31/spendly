@@ -5,7 +5,9 @@ from datetime import date
 from werkzeug.security import generate_password_hash
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_PATH = os.path.join(BASE_DIR, "expense_tracker.db")
+DB_PATH = os.environ.get("SPENDLY_DB_PATH") or os.path.join(
+    BASE_DIR, "expense_tracker.db"
+)
 
 CATEGORIES = (
     "Food",
@@ -52,6 +54,37 @@ def init_db():
     try:
         conn.executescript(SCHEMA_SQL)
         conn.commit()
+    finally:
+        conn.close()
+
+
+def get_user_by_email(email):
+    """Return the user row for an already-normalised email, or None."""
+    conn = get_db()
+    try:
+        return conn.execute(
+            "SELECT id, name, email, password_hash, created_at "
+            "FROM users WHERE email = ?",
+            (email,),
+        ).fetchone()
+    finally:
+        conn.close()
+
+
+def create_user(name, email, password):
+    """Insert a user with a hashed password and return the new id.
+
+    Expects an already-normalised email. Raises sqlite3.IntegrityError
+    if the email is already registered.
+    """
+    conn = get_db()
+    try:
+        cur = conn.execute(
+            "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
+            (name, email, generate_password_hash(password)),
+        )
+        conn.commit()
+        return cur.lastrowid
     finally:
         conn.close()
 

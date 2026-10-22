@@ -1,5 +1,6 @@
 import os
 import re
+from datetime import datetime
 from urllib.parse import urlparse
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -126,3 +127,47 @@ def test_profile_template_has_no_hex_or_inline_styles():
 def test_profile_css_uses_variables_only():
     css = read_project_file("static", "css", "profile.css")
     assert not HEX_COLOUR.search(css)
+
+
+# --- Live data (Step 5) ---------------------------------------------- #
+
+def test_profile_has_no_hardcoded_data():
+    assert "PROFILE_" not in read_project_file("app.py")
+
+
+def test_profile_shows_live_seed_stats(client):
+    html = profile_html(client)
+    count = re.search(r"Transactions</span>\s*<span class=\"profile-stat-value\">(\d+)<", html)
+    assert count and count.group(1) == "8"
+    assert '<span class="profile-stat-value">Bills</span>' in html
+
+
+def test_profile_transactions_newest_first(client):
+    html = profile_html(client)
+    dates = re.findall(r'<td class="tx-date">([^<]+)</td>', html)
+    parsed = [datetime.strptime(d, "%d %b %Y") for d in dates]
+    assert len(parsed) == 8
+    assert parsed == sorted(parsed, reverse=True)
+
+
+def test_profile_new_user_sees_empty_profile(client):
+    client.post("/register", data={
+        "name": "Fresh User",
+        "email": "fresh@example.com",
+        "password": "password123",
+        "confirm_password": "password123",
+    })
+    html = profile_html_for(client, "fresh@example.com", "password123")
+    assert "Fresh User" in html
+    assert "fresh@example.com" in html
+    assert "demo@spendly.com" not in html
+    assert "₹0.00" in html
+    count = re.search(r"Transactions</span>\s*<span class=\"profile-stat-value\">(\d+)<", html)
+    assert count and count.group(1) == "0"
+    assert "No expenses yet." in html
+    assert "No spending yet." in html
+
+
+def profile_html_for(client, email, password):
+    post_login(client, email=email, password=password)
+    return body(client.get("/profile"))

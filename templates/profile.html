@@ -12,7 +12,7 @@
 
         <header class="profile-header">
             <h1 class="profile-title">Your profile</h1>
-            <p class="profile-subtitle">Your account and where your money went this month.</p>
+            <p class="profile-subtitle">Your account and where your money has gone so far.</p>
         </header>
 
         <div class="profile-card profile-user">
@@ -33,12 +33,12 @@
             <div class="profile-card profile-stat">
                 <span class="profile-label">Total spent</span>
                 <span class="profile-stat-value">{{ stats.total_spent | inr }}</span>
-                <span class="profile-stat-note">This month</span>
+                <span class="profile-stat-note">All time</span>
             </div>
             <div class="profile-card profile-stat">
                 <span class="profile-label">Transactions</span>
                 <span class="profile-stat-value">{{ stats.transaction_count }}</span>
-                <span class="profile-stat-note">This month</span>
+                <span class="profile-stat-note">All time</span>
             </div>
             <div class="profile-card profile-stat">
                 <span class="profile-label">Top category</span>
@@ -64,12 +64,16 @@
                         <tbody>
                             {% for expense in expenses %}
                             <tr>
-                                <td class="tx-date">{{ expense.date }}</td>
+                                <td class="tx-date">{{ expense.date | display_date }}</td>
                                 <td>{{ expense.description }}</td>
                                 <td>
                                     <span class="cat-badge cat-{{ expense.category | lower }}">{{ expense.category }}</span>
                                 </td>
                                 <td class="tx-amount">{{ expense.amount | inr }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4">No expenses yet.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -93,6 +97,8 @@
                         </progress>
                         <span class="cat-percent">{{ category.percent }}%</span>
                     </li>
+                    {% else %}
+                    <li class="cat-row">No spending yet.</li>
                     {% endfor %}
                 </ul>
             </div>

@@ -96,7 +96,7 @@ pytest -s
 | `GET/POST /register` | Implemented — redirects to `/profile` if signed in; GET renders `register.html`; POST validates, creates user, flashes and redirects to `/login` |
 | `GET/POST /login` | Implemented — GET renders `login.html` (redirects to `/profile` if signed in); POST authenticates, sets `session["user_id"]`/`session["user_name"]` and redirects to `/profile` (no welcome flash) |
 | `GET /logout` | Implemented — clears session, flashes and redirects to `/` |
-| `GET /profile` | Implemented (Step 4) — redirects to `/login` if signed out; renders `profile.html` with hardcoded data (`PROFILE_*` constants in `app.py`); real data in Step 5 |
+| `GET /profile` | Implemented (Step 5) — redirects to `/login` if signed out or the session's user no longer exists; renders `profile.html` with live all-time data from `get_user_by_id`, `get_summary_stats`, `get_recent_transactions` (10 newest) and `get_category_breakdown` |
 | `GET /expenses/add` | Stub — Step 7 |
 | `GET /expenses/<id>/edit` | Stub — Step 8 |
 | `GET /expenses/<id>/delete` | Stub — Step 9 |
@@ -112,6 +112,7 @@ pytest -s
 - **Never put DB logic in route functions** — it belongs in `database/db.py`
 - **Never install new packages** mid-feature without flagging it — keep `requirements.txt` in sync
 - **Never use JS frameworks** — the frontend is intentionally vanilla
-- **`database/db.py` only has helpers from completed steps** — `get_db`, `init_db`, `seed_db`, `get_user_by_email`, `create_user`, `authenticate_user`; do not assume others exist until the step that implements them
+- **`database/db.py` only has helpers from completed steps** — `get_db`, `init_db`, `seed_db`, `get_user_by_email`, `create_user`, `authenticate_user`, `get_user_by_id`, `get_recent_transactions`, `get_summary_stats`, `get_category_breakdown`; do not assume others exist until the step that implements them
+- **Dates are stored as ISO `YYYY-MM-DD`** — format them in templates with the `display_date` filter; render money with the `inr` filter (handles `None`)
 - **FK enforcement is manual** — SQLite foreign keys are off by default; `get_db()` must run `PRAGMA foreign_keys = ON` on every connection
 - The app runs on **port 5001**, not the Flask default 5000 — don't change this

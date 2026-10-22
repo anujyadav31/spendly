@@ -121,18 +121,33 @@ def get_user_by_id(user_id):
     }
 
 
-def get_recent_transactions(user_id, limit=10):
+def _date_range_params(date_from, date_to):
+    """Return params for the `(? IS NULL OR date BETWEEN ? AND ?)` condition.
+
+    The range only applies when both bounds are given (the /profile route
+    guarantees both-or-neither); otherwise all three are None, which makes
+    the condition match every row.
+    """
+    if date_from and date_to:
+        return date_from, date_from, date_to
+    return None, None, None
+
+
+def get_recent_transactions(user_id, limit=10, date_from=None, date_to=None):
     """Return the user's newest expenses as {date, description, category, amount}.
 
     Ordered by date (newest first), ties broken by id descending.
     Dates are ISO strings; formatting is left to the template.
+    Optionally restricted to the inclusive range date_from..date_to.
     """
+    range_params = _date_range_params(date_from, date_to)
     conn = get_db()
     try:
         rows = conn.execute(
             "SELECT date, description, category, amount FROM expenses "
-            "WHERE user_id = ? ORDER BY date DESC, id DESC LIMIT ?",
-            (user_id, limit),
+            "WHERE user_id = ? AND (? IS NULL OR date BETWEEN ? AND ?) "
+            "ORDER BY date DESC, id DESC LIMIT ?",
+            (user_id, *range_params, limit),
         ).fetchall()
     finally:
         conn.close()
@@ -147,23 +162,26 @@ def get_recent_transactions(user_id, limit=10):
     ]
 
 
-def get_summary_stats(user_id):
+def get_summary_stats(user_id, date_from=None, date_to=None):
     """Return {total_spent, transaction_count, top_category, top_category_total}.
 
-    All-time figures for the user. Top-category ties resolve alphabetically.
+    All-time figures for the user unless a date range is given.
+    Top-category ties resolve alphabetically.
     """
+    range_params = _date_range_params(date_from, date_to)
     conn = get_db()
     try:
         totals = conn.execute(
             "SELECT COUNT(*) AS n, COALESCE(SUM(amount), 0) AS total "
-            "FROM expenses WHERE user_id = ?",
-            (user_id,),
+            "FROM expenses "
+            "WHERE user_id = ? AND (? IS NULL OR date BETWEEN ? AND ?)",
+            (user_id, *range_params),
         ).fetchone()
         top = conn.execute(
             "SELECT category, SUM(amount) AS total FROM expenses "
-            "WHERE user_id = ? GROUP BY category "
-            "ORDER BY total DESC, category ASC LIMIT 1",
-            (user_id,),
+            "WHERE user_id = ? AND (? IS NULL OR date BETWEEN ? AND ?) "
+            "GROUP BY category ORDER BY total DESC, category ASC LIMIT 1",
+            (user_id, *range_params),
         ).fetchone()
     finally:
         conn.close()
@@ -175,15 +193,19 @@ def get_summary_stats(user_id):
     }
 
 
-def get_category_breakdown(user_id):
-    """Return [{name, total, percent}] by total desc; percents sum to 100."""
+def get_category_breakdown(user_id, date_from=None, date_to=None):
+    """Return [{name, total, percent}] by total desc; percents sum to 100.
+
+    Optionally restricted to the inclusive range date_from..date_to.
+    """
+    range_params = _date_range_params(date_from, date_to)
     conn = get_db()
     try:
         rows = conn.execute(
             "SELECT category AS name, SUM(amount) AS total FROM expenses "
-            "WHERE user_id = ? GROUP BY category "
-            "ORDER BY total DESC, name ASC",
-            (user_id,),
+            "WHERE user_id = ? AND (? IS NULL OR date BETWEEN ? AND ?) "
+            "GROUP BY category ORDER BY total DESC, name ASC",
+            (user_id, *range_params),
         ).fetchall()
     finally:
         conn.close()

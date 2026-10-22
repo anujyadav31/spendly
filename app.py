@@ -1,6 +1,7 @@
+import calendar
 import os
 import sqlite3
-from datetime import datetime
+from datetime import date, datetime
 
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 
@@ -33,6 +34,7 @@ DUPLICATE_EMAIL_ERROR = "An account with that email already exists."
 REGISTER_SUCCESS = "Account created — please sign in"
 LOGIN_ERROR = "Invalid email or password."
 LOGOUT_SUCCESS = "You've been signed out"
+DATE_RANGE_ERROR = "Start date must be before end date."
 
 
 @app.template_filter("inr")
@@ -47,6 +49,69 @@ def format_display_date(value):
         return datetime.strptime(value, "%Y-%m-%d").strftime("%d %b %Y")
     except (TypeError, ValueError):
         return value
+
+
+def parse_iso_date(value):
+    """Return value if it is a valid YYYY-MM-DD date, otherwise None."""
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date().isoformat()
+    except (TypeError, ValueError):
+        return None
+
+
+def resolve_date_filter(args):
+    """Return (date_from, date_to, error) from query args.
+
+    Malformed or partial ranges fall back silently to (None, None, None);
+    a reversed range falls back to (None, None, DATE_RANGE_ERROR).
+    """
+    date_from = parse_iso_date(args.get("date_from"))
+    date_to = parse_iso_date(args.get("date_to"))
+    if date_from is None or date_to is None:
+        return None, None, None
+    if date_from > date_to:
+        return None, None, DATE_RANGE_ERROR
+    return date_from, date_to, None
+
+
+def months_ago(today, months):
+    """Return the date `months` calendar months before today.
+
+    The day is clamped to the target month's length, so 31 Aug minus
+    6 months gives 28 Feb (29 Feb in a leap year).
+    """
+    month_index = today.year * 12 + today.month - 1 - months
+    year, month = divmod(month_index, 12)
+    month += 1
+    day = min(today.day, calendar.monthrange(year, month)[1])
+    return date(year, month, day)
+
+
+def build_presets(today, date_from, date_to):
+    """Return the quick-select presets, marking the one matching the filter."""
+    end = today.isoformat()
+    ranges = [
+        ("This Month", today.replace(day=1).isoformat(), end),
+        ("Last 3 Months", months_ago(today, 3).isoformat(), end),
+        ("Last 6 Months", months_ago(today, 6).isoformat(), end),
+        ("All Time", None, None),
+    ]
+    return [
+        {
+            "label": label,
+            "date_from": start,
+            "date_to": stop,
+            "active": (start, stop) == (date_from, date_to),
+        }
+        for label, start, stop in ranges
+    ]
+
+
+def format_period(date_from, date_to):
+    """Return the stat-note label for the active date range."""
+    if date_from is None:
+        return "All time"
+    return f"{format_display_date(date_from)} – {format_display_date(date_to)}"
 
 
 def normalize_email(raw):
@@ -160,9 +225,18 @@ def profile():
         session.clear()
         return redirect(url_for("login"))
 
-    expenses = get_recent_transactions(user_id)
-    stats = get_summary_stats(user_id)
-    categories = get_category_breakdown(user_id)
+    date_from, date_to, filter_error = resolve_date_filter(request.args)
+    if filter_error:
+        flash(filter_error, "error")
+    presets = build_presets(date.today(), date_from, date_to)
+
+    expenses = get_recent_transactions(
+        user_id, date_from=date_from, date_to=date_to
+    )
+    stats = get_summary_stats(user_id, date_from=date_from, date_to=date_to)
+    categories = get_category_breakdown(
+        user_id, date_from=date_from, date_to=date_to
+    )
 
     return render_template(
         "profile.html",
@@ -170,6 +244,11 @@ def profile():
         stats=stats,
         expenses=expenses,
         categories=categories,
+        presets=presets,
+        date_from=date_from,
+        date_to=date_to,
+        custom_active=not any(preset["active"] for preset in presets),
+        period_label=format_period(date_from, date_to),
     )
 
 

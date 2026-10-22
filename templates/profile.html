@@ -29,16 +29,40 @@
             </div>
         </div>
 
+        <div class="profile-card profile-filter">
+            <nav class="filter-presets" aria-label="Date range presets">
+                {% for preset in presets %}
+                <a href="{{ url_for('profile', date_from=preset.date_from, date_to=preset.date_to) }}"
+                   class="filter-preset{% if preset.active %} is-active{% endif %}"
+                   {% if preset.active %}aria-current="page"{% endif %}>{{ preset.label }}</a>
+                {% endfor %}
+            </nav>
+            <form method="get" action="{{ url_for('profile') }}"
+                  class="filter-custom{% if custom_active %} is-active{% endif %}">
+                <label class="filter-field">
+                    <span class="profile-label">From</span>
+                    <input type="date" name="date_from" class="form-input filter-input"
+                           value="{{ date_from or '' }}" required>
+                </label>
+                <label class="filter-field">
+                    <span class="profile-label">To</span>
+                    <input type="date" name="date_to" class="form-input filter-input"
+                           value="{{ date_to or '' }}" required>
+                </label>
+                <button type="submit" class="btn-primary filter-apply">Apply</button>
+            </form>
+        </div>
+
         <div class="profile-stats">
             <div class="profile-card profile-stat">
                 <span class="profile-label">Total spent</span>
                 <span class="profile-stat-value">{{ stats.total_spent | inr }}</span>
-                <span class="profile-stat-note">All time</span>
+                <span class="profile-stat-note">{{ period_label }}</span>
             </div>
             <div class="profile-card profile-stat">
                 <span class="profile-label">Transactions</span>
                 <span class="profile-stat-value">{{ stats.transaction_count }}</span>
-                <span class="profile-stat-note">All time</span>
+                <span class="profile-stat-note">{{ period_label }}</span>
             </div>
             <div class="profile-card profile-stat">
                 <span class="profile-label">Top category</span>

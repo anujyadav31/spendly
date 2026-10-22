@@ -100,6 +100,79 @@
     color: var(--ink-soft);
 }
 
+/* --- Date filter ---------------------------------------------------- */
+
+.profile-filter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.filter-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.filter-preset {
+    display: inline-block;
+    padding: 0.375rem 0.875rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.filter-preset:hover {
+    border-color: var(--ink-faint);
+    color: var(--ink);
+}
+
+.filter-preset.is-active {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    color: var(--accent);
+}
+
+.filter-custom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+}
+
+.filter-custom.is-active {
+    border-color: var(--accent);
+    background: var(--accent-light);
+}
+
+.filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+/* Compact sizing on top of the shared .form-input / .btn-primary styles. */
+.filter-input {
+    width: auto;
+    padding: 0.375rem 0.625rem;
+    font-size: 0.875rem;
+    background: var(--paper-card);
+}
+
+.filter-apply {
+    padding: 0.4375rem 1rem;
+    font-size: 0.875rem;
+}
+
 /* --- Stats ---------------------------------------------------------- */
 
 .profile-stats {
@@ -285,6 +358,8 @@
 @media (max-width: 600px) {
     .profile-page { padding: 2rem 1rem 3rem; }
     .profile-stats { grid-template-columns: 1fr; }
+    .profile-filter { flex-direction: column; align-items: stretch; }
+    .filter-custom { flex-direction: column; align-items: stretch; }
     .profile-user { flex-wrap: wrap; }
     .profile-member {
         flex-basis: 100%;

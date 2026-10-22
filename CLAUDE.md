@@ -96,10 +96,12 @@ pytest -s
 | `GET/POST /register` | Implemented — redirects to `/profile` if signed in; GET renders `register.html`; POST validates, creates user, flashes and redirects to `/login` |
 | `GET/POST /login` | Implemented — GET renders `login.html` (redirects to `/profile` if signed in); POST authenticates, sets `session["user_id"]`/`session["user_name"]` and redirects to `/profile` (no welcome flash) |
 | `GET /logout` | Implemented — clears session, flashes and redirects to `/` |
-| `GET /profile` | Implemented (Step 5) — redirects to `/login` if signed out or the session's user no longer exists; renders `profile.html` with live all-time data from `get_user_by_id`, `get_summary_stats`, `get_recent_transactions` (10 newest) and `get_category_breakdown` |
+| `GET /profile` | Implemented (Steps 5–6) — redirects to `/login` if signed out or the session's user no longer exists; renders `profile.html` with live data from `get_user_by_id`, `get_summary_stats`, `get_recent_transactions` (10 newest) and `get_category_breakdown`, optionally filtered by date (see below) |
 | `GET /expenses/add` | Stub — Step 7 |
 | `GET /expenses/<id>/edit` | Stub — Step 8 |
 | `GET /expenses/<id>/delete` | Stub — Step 9 |
+
+**`/profile` date filter (Step 6):** optional `?date_from=&date_to=` (ISO, inclusive, both required) filters stats, transactions and categories. Malformed or partial ranges fall back to all-time; a reversed range also flashes an error. Presets: This Month, Last 3 Months, Last 6 Months, All Time.
 
 **Do not implement a stub route unless the active task explicitly targets that step.**
 

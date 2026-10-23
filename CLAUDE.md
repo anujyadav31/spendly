@@ -97,6 +97,7 @@ pytest -s
 | `GET/POST /login` | Implemented — GET renders `login.html` (redirects to `/profile` if signed in); POST authenticates, sets `session["user_id"]`/`session["user_name"]` and redirects to `/profile` (no welcome flash) |
 | `GET /logout` | Implemented — clears session, flashes and redirects to `/` |
 | `GET /profile` | Implemented (Steps 5–6) — redirects to `/login` if signed out or the session's user no longer exists; renders `profile.html` with live data from `get_user_by_id`, `get_summary_stats`, `get_recent_transactions` (10 newest) and `get_category_breakdown`, optionally filtered by date (see below) |
+| `GET /analytics` | Implemented — redirects to `/login` if signed out or the session's user no longer exists; renders the `analytics.html` coming-soon page. Navbar shows an "Analytics" link (signed-in only) with an `active` class via `request.endpoint` |
 | `GET /expenses/add` | Stub — Step 7 |
 | `GET /expenses/<id>/edit` | Stub — Step 8 |
 | `GET /expenses/<id>/delete` | Stub — Step 9 |

@@ -1,0 +1,176 @@
+/* ------------------------------------------------------------------ */
+/* Analytics — coming soon page                                        */
+/* ------------------------------------------------------------------ */
+
+.analytics-page {
+    --soon-deep: color-mix(in srgb, var(--accent) 45%, var(--ink-soft));
+    --soon-mid: color-mix(in srgb, var(--accent) 55%, var(--ink-muted));
+    --soon-shadow: color-mix(in srgb, var(--ink) 12%, transparent);
+    --soon-tint: color-mix(in srgb, var(--paper-warm) 70%, var(--paper-card));
+
+    position: relative;
+    overflow: hidden;
+    padding: 4rem 2rem 5rem;
+    display: flex;
+    justify-content: center;
+}
+
+/* Soft background blobs behind the card */
+.analytics-page::before,
+.analytics-page::after {
+    content: "";
+    position: absolute;
+    width: 24rem;
+    height: 24rem;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--paper-warm), transparent 70%);
+    pointer-events: none;
+}
+
+.analytics-page::before { top: -12rem; left: -12rem; }
+.analytics-page::after { bottom: -12rem; right: -12rem; }
+
+.soon-card {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    max-width: 512px;
+    background: var(--paper-card);
+    border: 1px solid var(--border-soft);
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px var(--soon-shadow);
+    padding: 40px;
+    text-align: center;
+}
+
+/* Quarter-circle corner accents */
+.soon-corner {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    pointer-events: none;
+}
+
+.soon-corner--top {
+    top: 0;
+    right: 0;
+    border-bottom-left-radius: 100%;
+    background: linear-gradient(225deg, var(--soon-tint), var(--paper-card));
+}
+
+.soon-corner--bottom {
+    bottom: 0;
+    left: 0;
+    border-top-right-radius: 100%;
+    background: linear-gradient(45deg, var(--soon-tint), var(--paper-card));
+}
+
+/* Bottom accent bar */
+.soon-card::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 128px;
+    height: 4px;
+    transform: translateX(-50%);
+    border-radius: 999px 999px 0 0;
+    background: linear-gradient(90deg, transparent, var(--soon-mid), transparent);
+    opacity: 0.35;
+}
+
+.soon-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.soon-icon {
+    width: 96px;
+    height: 96px;
+    display: grid;
+    place-items: center;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--soon-mid), var(--soon-deep));
+    color: var(--paper-card);
+    box-shadow: 0 20px 25px -5px var(--soon-shadow);
+}
+
+.soon-icon svg {
+    width: 48px;
+    height: 48px;
+}
+
+.soon-badge {
+    margin-top: 32px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 21px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--soon-deep), var(--soon-mid));
+    color: var(--paper-card);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    box-shadow: 0 10px 15px -3px var(--soon-shadow);
+}
+
+.soon-title {
+    margin-top: 20px;
+    font-family: var(--font-body);
+    font-size: 1.875rem;
+    line-height: 36px;
+    font-weight: 600;
+    color: var(--soon-deep);
+}
+
+.soon-body {
+    margin-top: 16px;
+    max-width: 384px;
+    font-size: 1.05rem;
+    line-height: 26px;
+    color: var(--ink-muted);
+}
+
+.soon-dots {
+    margin-top: 32px;
+    display: flex;
+    gap: 8px;
+}
+
+.soon-dots span {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--soon-deep);
+    animation: soon-pulse 1.5s ease-in-out infinite;
+}
+
+.soon-dots span:nth-child(2) { animation-delay: 0.2s; }
+.soon-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes soon-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .soon-dots span { animation: none; }
+}
+
+.soon-caption {
+    margin-top: 16px;
+    font-size: 0.8rem;
+    line-height: 16px;
+    letter-spacing: 0.02em;
+    color: var(--ink-faint);
+}
+
+@media (max-width: 600px) {
+    .analytics-page { padding: 2rem 1rem 3rem; }
+    .soon-card { padding: 40px 24px; }
+    .soon-title { font-size: 1.6rem; }
+}

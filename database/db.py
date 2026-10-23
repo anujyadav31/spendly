@@ -121,6 +121,24 @@ def get_user_by_id(user_id):
     }
 
 
+def create_expense(user_id, amount, category, expense_date, description):
+    """Insert one expense for the user and return the new id.
+
+    Expects already-validated values; an empty description is stored as NULL.
+    """
+    conn = get_db()
+    try:
+        cur = conn.execute(
+            "INSERT INTO expenses (user_id, amount, category, date, description) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (user_id, amount, category, expense_date, description or None),
+        )
+        conn.commit()
+        return cur.lastrowid
+    finally:
+        conn.close()
+
+
 def _date_range_params(date_from, date_to):
     """Return params for the `(? IS NULL OR date BETWEEN ? AND ?)` condition.
 

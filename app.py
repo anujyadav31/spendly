@@ -1,4 +1,5 @@
 import calendar
+import math
 import os
 import sqlite3
 from datetime import date, datetime
@@ -6,7 +7,9 @@ from datetime import date, datetime
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 
 from database.db import (
+    CATEGORIES,
     authenticate_user,
+    create_expense,
     create_user,
     get_category_breakdown,
     get_db,
@@ -35,6 +38,9 @@ REGISTER_SUCCESS = "Account created — please sign in"
 LOGIN_ERROR = "Invalid email or password."
 LOGOUT_SUCCESS = "You've been signed out"
 DATE_RANGE_ERROR = "Start date must be before end date."
+EXPENSE_ADDED = "Expense added"
+MAX_EXPENSE_AMOUNT = 10_000_000
+MAX_DESCRIPTION_LENGTH = 200
 
 
 @app.template_filter("inr")
@@ -139,6 +145,47 @@ def validate_registration(name, email, password, confirm_password):
     return None
 
 
+def parse_amount(raw):
+    """Return raw as a finite float rounded to 2 decimals, otherwise None."""
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        return None
+    return round(value, 2) if math.isfinite(value) else None
+
+
+def validate_expense(amount, category, expense_date, description, today):
+    """Return the first validation error message, or None if all valid.
+
+    Expects amount from parse_amount, expense_date from parse_iso_date and
+    today as an ISO date string.
+    """
+    if amount is None or amount <= 0 or amount > MAX_EXPENSE_AMOUNT:
+        return "Please enter an amount greater than zero."
+    if category not in CATEGORIES:
+        return "Please choose a valid category."
+    if expense_date is None or expense_date > today:
+        return "Please enter a valid date (not in the future)."
+    if len(description) > MAX_DESCRIPTION_LENGTH:
+        limit = MAX_DESCRIPTION_LENGTH
+        return f"Description must be {limit} characters or fewer."
+    return None
+
+
+def get_signed_in_user():
+    """Return the session's user, or None if signed out.
+
+    A session whose user no longer exists is cleared.
+    """
+    user_id = session.get("user_id")
+    if user_id is None:
+        return None
+    user = get_user_by_id(user_id)
+    if user is None:
+        session.clear()
+    return user
+
+
 # ------------------------------------------------------------------ #
 # Routes                                                              #
 # ------------------------------------------------------------------ #
@@ -216,14 +263,11 @@ def privacy():
 
 @app.route("/profile")
 def profile():
-    if "user_id" not in session:
+    user = get_signed_in_user()
+    if user is None:
         return redirect(url_for("login"))
 
-    user_id = session["user_id"]
-    user = get_user_by_id(user_id)
-    if user is None:
-        session.clear()
-        return redirect(url_for("login"))
+    user_id = user["id"]
 
     date_from, date_to, filter_error = resolve_date_filter(request.args)
     if filter_error:
@@ -254,24 +298,55 @@ def profile():
 
 @app.route("/analytics")
 def analytics():
-    if "user_id" not in session:
-        return redirect(url_for("login"))
-
-    if get_user_by_id(session["user_id"]) is None:
-        session.clear()
+    if get_signed_in_user() is None:
         return redirect(url_for("login"))
 
     return render_template("analytics.html")
 
 
+@app.route("/expenses/add", methods=["GET", "POST"])
+def add_expense():
+    user = get_signed_in_user()
+    if user is None:
+        return redirect(url_for("login"))
+
+    today = date.today().isoformat()
+    form = {"expense_date": today}
+    error = None
+
+    if request.method == "POST":
+        form = {
+            "amount": request.form.get("amount", "").strip(),
+            "category": request.form.get("category", ""),
+            "expense_date": request.form.get("date", "").strip(),
+            "description": request.form.get("description", "").strip(),
+        }
+        amount = parse_amount(form["amount"])
+        expense_date = parse_iso_date(form["expense_date"])
+        error = validate_expense(
+            amount, form["category"], expense_date, form["description"], today
+        )
+        if error is None:
+            create_expense(
+                user["id"], amount, form["category"], expense_date,
+                form["description"],
+            )
+            flash(EXPENSE_ADDED, "success")
+            return redirect(url_for("profile"))
+
+    status = 400 if error else 200
+    return render_template(
+        "add_expense.html",
+        categories=CATEGORIES,
+        today=today,
+        error=error,
+        **form,
+    ), status
+
+
 # ------------------------------------------------------------------ #
 # Placeholder routes — students will implement these                  #
 # ------------------------------------------------------------------ #
-
-
-@app.route("/expenses/add")
-def add_expense():
-    return "Add expense — coming in Step 7"
 
 
 @app.route("/expenses/<int:id>/edit")

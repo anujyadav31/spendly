@@ -48,6 +48,29 @@
     margin-bottom: 1rem;
 }
 
+.profile-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.profile-card-header .profile-section-title { margin-bottom: 0; }
+
+/* Compact sizing on top of the shared .btn-primary styles. */
+.btn-compact {
+    padding: 0.4375rem 1rem;
+    font-size: 0.875rem;
+}
+
+.tx-empty-link {
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.tx-empty-link:hover { text-decoration: underline; }
+
 /* --- User card ------------------------------------------------------ */
 
 .profile-user {

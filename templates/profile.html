@@ -73,7 +73,10 @@
 
         <div class="profile-grid">
             <div class="profile-card">
-                <h2 class="profile-section-title">Transaction history</h2>
+                <div class="profile-card-header">
+                    <h2 class="profile-section-title">Transaction history</h2>
+                    <a href="{{ url_for('add_expense') }}" class="btn-primary btn-compact">Add expense</a>
+                </div>
                 <div class="tx-table-wrap">
                     <table class="tx-table">
                         <caption class="visually-hidden">Recent expenses</caption>
@@ -97,7 +100,10 @@
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="4">No expenses yet.</td>
+                                <td colspan="4">
+                                    No expenses yet.
+                                    <a href="{{ url_for('add_expense') }}" class="tx-empty-link">Add your first expense</a>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>

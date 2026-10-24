@@ -20,6 +20,7 @@ from database.db import (
     authenticate_user,
     create_expense,
     create_user,
+    delete_expense as db_delete_expense,
     get_category_breakdown,
     get_db,
     get_expense_by_id,
@@ -51,6 +52,7 @@ LOGOUT_SUCCESS = "You've been signed out"
 DATE_RANGE_ERROR = "Start date must be before end date."
 EXPENSE_ADDED = "Expense added"
 EXPENSE_UPDATED = "Expense updated"
+EXPENSE_DELETED = "Expense deleted"
 MAX_EXPENSE_AMOUNT = 10_000_000
 MAX_DESCRIPTION_LENGTH = 200
 
@@ -423,14 +425,17 @@ def edit_expense(id):
     )
 
 
-# ------------------------------------------------------------------ #
-# Placeholder routes — students will implement these                  #
-# ------------------------------------------------------------------ #
-
-
-@app.route("/expenses/<int:id>/delete")
+@app.route("/expenses/<int:id>/delete", methods=["POST"])
 def delete_expense(id):
-    return "Delete expense — coming in Step 9"
+    user = get_signed_in_user()
+    if user is None:
+        return redirect(url_for("login"))
+
+    if not db_delete_expense(id, user["id"]):
+        abort(404)
+
+    flash(EXPENSE_DELETED, "success")
+    return redirect(url_for("profile"))
 
 
 if __name__ == "__main__":

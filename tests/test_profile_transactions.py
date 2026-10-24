@@ -4,7 +4,7 @@ import database.db as db_module
 
 ISO_DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 DISPLAY_DATE_RE = re.compile(r"\d{2} [A-Z][a-z]{2} \d{4}")
-EXPECTED_KEYS = {"date", "description", "category", "amount"}
+EXPECTED_KEYS = {"id", "date", "description", "category", "amount"}
 
 
 def _seed_user_id():

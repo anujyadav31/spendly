@@ -455,10 +455,6 @@ class TestProfileIntegration:
         html = logged_in.get("/profile").get_data(as_text=True)
         assert "Actions" in html
 
-    def test_no_delete_link_on_profile(self, logged_in):
-        html = logged_in.get("/profile").get_data(as_text=True)
-        assert "/delete" not in html, "Delete belongs to Step 9"
-
     def test_empty_state_text_kept(self, client, other_user):
         _login(client, OTHER_EMAIL, OTHER_PASSWORD)
         html = client.get("/profile").get_data(as_text=True)
@@ -796,10 +792,10 @@ class TestDbHelpers:
 
 # ---------------------------------------------------------------- misc
 class TestMisc:
-    def test_delete_route_still_a_step9_stub(self, logged_in, target_id):
+    def test_get_delete_route_is_405_and_row_intact(self, logged_in, target_id):
         before = _snapshot(target_id)
-        logged_in.get(f"/expenses/{target_id}/delete")
-        assert _snapshot(target_id) == before, "Delete must not be implemented"
+        assert logged_in.get(f"/expenses/{target_id}/delete").status_code == 405
+        assert _snapshot(target_id) == before, "GET must never delete"
 
     def test_cancel_flow_changes_nothing(self, logged_in, target_id):
         before = _snapshot(target_id)

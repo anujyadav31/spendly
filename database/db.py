@@ -183,6 +183,20 @@ def update_expense(expense_id, user_id, amount, category, expense_date, descript
         conn.close()
 
 
+def delete_expense(expense_id, user_id):
+    """Delete one of the user's expenses and return True if a row was removed."""
+    conn = get_db()
+    try:
+        cur = conn.execute(
+            "DELETE FROM expenses WHERE id = ? AND user_id = ?",
+            (expense_id, user_id),
+        )
+        conn.commit()
+        return cur.rowcount == 1
+    finally:
+        conn.close()
+
+
 def _date_range_params(date_from, date_to):
     """Return params for the `(? IS NULL OR date BETWEEN ? AND ?)` condition.
 

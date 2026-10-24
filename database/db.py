@@ -139,6 +139,50 @@ def create_expense(user_id, amount, category, expense_date, description):
         conn.close()
 
 
+def get_expense_by_id(expense_id, user_id):
+    """Return {id, amount, category, date, description} or None.
+
+    Only returns the expense if it belongs to user_id; a NULL description
+    is returned as "".
+    """
+    conn = get_db()
+    try:
+        row = conn.execute(
+            "SELECT id, amount, category, date, description FROM expenses "
+            "WHERE id = ? AND user_id = ?",
+            (expense_id, user_id),
+        ).fetchone()
+    finally:
+        conn.close()
+    if row is None:
+        return None
+    return {
+        "id": row["id"],
+        "amount": float(row["amount"]),
+        "category": row["category"],
+        "date": row["date"],
+        "description": row["description"] or "",
+    }
+
+
+def update_expense(expense_id, user_id, amount, category, expense_date, description):
+    """Update one of the user's expenses and return True if a row changed.
+
+    Expects already-validated values; an empty description is stored as NULL.
+    """
+    conn = get_db()
+    try:
+        cur = conn.execute(
+            "UPDATE expenses SET amount = ?, category = ?, date = ?, "
+            "description = ? WHERE id = ? AND user_id = ?",
+            (amount, category, expense_date, description or None, expense_id, user_id),
+        )
+        conn.commit()
+        return cur.rowcount == 1
+    finally:
+        conn.close()
+
+
 def _date_range_params(date_from, date_to):
     """Return params for the `(? IS NULL OR date BETWEEN ? AND ?)` condition.
 
@@ -152,7 +196,7 @@ def _date_range_params(date_from, date_to):
 
 
 def get_recent_transactions(user_id, limit=10, date_from=None, date_to=None):
-    """Return the user's newest expenses as {date, description, category, amount}.
+    """Return the user's newest expenses as {id, date, description, category, amount}.
 
     Ordered by date (newest first), ties broken by id descending.
     Dates are ISO strings; formatting is left to the template.
@@ -162,7 +206,7 @@ def get_recent_transactions(user_id, limit=10, date_from=None, date_to=None):
     conn = get_db()
     try:
         rows = conn.execute(
-            "SELECT date, description, category, amount FROM expenses "
+            "SELECT id, date, description, category, amount FROM expenses "
             "WHERE user_id = ? AND (? IS NULL OR date BETWEEN ? AND ?) "
             "ORDER BY date DESC, id DESC LIMIT ?",
             (user_id, *range_params, limit),
@@ -171,6 +215,7 @@ def get_recent_transactions(user_id, limit=10, date_from=None, date_to=None):
         conn.close()
     return [
         {
+            "id": row["id"],
             "date": row["date"],
             "description": row["description"] or "",
             "category": row["category"],

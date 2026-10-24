@@ -4,7 +4,16 @@ import os
 import sqlite3
 from datetime import date, datetime
 
-from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask import (
+    Flask,
+    abort,
+    flash,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 
 from database.db import (
     CATEGORIES,
@@ -13,12 +22,14 @@ from database.db import (
     create_user,
     get_category_breakdown,
     get_db,
+    get_expense_by_id,
     get_recent_transactions,
     get_summary_stats,
     get_user_by_email,
     get_user_by_id,
     init_db,
     seed_db,
+    update_expense,
 )
 
 app = Flask(__name__)
@@ -39,6 +50,7 @@ LOGIN_ERROR = "Invalid email or password."
 LOGOUT_SUCCESS = "You've been signed out"
 DATE_RANGE_ERROR = "Start date must be before end date."
 EXPENSE_ADDED = "Expense added"
+EXPENSE_UPDATED = "Expense updated"
 MAX_EXPENSE_AMOUNT = 10_000_000
 MAX_DESCRIPTION_LENGTH = 200
 
@@ -172,6 +184,26 @@ def validate_expense(amount, category, expense_date, description, today):
     return None
 
 
+def read_expense_form(form_data):
+    """Return the expense form's submitted values, stripped (category as-is)."""
+    return {
+        "amount": form_data.get("amount", "").strip(),
+        "category": form_data.get("category", ""),
+        "expense_date": form_data.get("date", "").strip(),
+        "description": form_data.get("description", "").strip(),
+    }
+
+
+def expense_to_form(expense):
+    """Map a stored expense to the expense form's field values."""
+    return {
+        "amount": f"{expense['amount']:.2f}",
+        "category": expense["category"],
+        "expense_date": expense["date"],
+        "description": expense["description"],
+    }
+
+
 def get_signed_in_user():
     """Return the session's user, or None if signed out.
 
@@ -189,6 +221,7 @@ def get_signed_in_user():
 # ------------------------------------------------------------------ #
 # Routes                                                              #
 # ------------------------------------------------------------------ #
+
 
 @app.route("/")
 def landing():
@@ -216,9 +249,10 @@ def register():
             error = DUPLICATE_EMAIL_ERROR
 
     if error:
-        return render_template(
-            "register.html", error=error, name=name, email=email
-        ), 400
+        return (
+            render_template("register.html", error=error, name=name, email=email),
+            400,
+        )
 
     flash(REGISTER_SUCCESS, "success")
     return redirect(url_for("login"))
@@ -274,13 +308,9 @@ def profile():
         flash(filter_error, "error")
     presets = build_presets(date.today(), date_from, date_to)
 
-    expenses = get_recent_transactions(
-        user_id, date_from=date_from, date_to=date_to
-    )
+    expenses = get_recent_transactions(user_id, date_from=date_from, date_to=date_to)
     stats = get_summary_stats(user_id, date_from=date_from, date_to=date_to)
-    categories = get_category_breakdown(
-        user_id, date_from=date_from, date_to=date_to
-    )
+    categories = get_category_breakdown(user_id, date_from=date_from, date_to=date_to)
 
     return render_template(
         "profile.html",
@@ -315,12 +345,7 @@ def add_expense():
     error = None
 
     if request.method == "POST":
-        form = {
-            "amount": request.form.get("amount", "").strip(),
-            "category": request.form.get("category", ""),
-            "expense_date": request.form.get("date", "").strip(),
-            "description": request.form.get("description", "").strip(),
-        }
+        form = read_expense_form(request.form)
         amount = parse_amount(form["amount"])
         expense_date = parse_iso_date(form["expense_date"])
         error = validate_expense(
@@ -328,30 +353,79 @@ def add_expense():
         )
         if error is None:
             create_expense(
-                user["id"], amount, form["category"], expense_date,
+                user["id"],
+                amount,
+                form["category"],
+                expense_date,
                 form["description"],
             )
             flash(EXPENSE_ADDED, "success")
             return redirect(url_for("profile"))
 
     status = 400 if error else 200
-    return render_template(
-        "add_expense.html",
-        categories=CATEGORIES,
-        today=today,
-        error=error,
-        **form,
-    ), status
+    return (
+        render_template(
+            "add_expense.html",
+            categories=CATEGORIES,
+            today=today,
+            error=error,
+            **form,
+        ),
+        status,
+    )
+
+
+@app.route("/expenses/<int:id>/edit", methods=["GET", "POST"])
+def edit_expense(id):
+    user = get_signed_in_user()
+    if user is None:
+        return redirect(url_for("login"))
+
+    expense = get_expense_by_id(id, user["id"])
+    if expense is None:
+        abort(404)
+
+    today = date.today().isoformat()
+    form = expense_to_form(expense)
+    error = None
+
+    if request.method == "POST":
+        form = read_expense_form(request.form)
+        amount = parse_amount(form["amount"])
+        expense_date = parse_iso_date(form["expense_date"])
+        error = validate_expense(
+            amount, form["category"], expense_date, form["description"], today
+        )
+        if error is None:
+            if not update_expense(
+                id,
+                user["id"],
+                amount,
+                form["category"],
+                expense_date,
+                form["description"],
+            ):
+                abort(404)
+            flash(EXPENSE_UPDATED, "success")
+            return redirect(url_for("profile"))
+
+    status = 400 if error else 200
+    return (
+        render_template(
+            "edit_expense.html",
+            expense_id=id,
+            categories=CATEGORIES,
+            today=today,
+            error=error,
+            **form,
+        ),
+        status,
+    )
 
 
 # ------------------------------------------------------------------ #
 # Placeholder routes — students will implement these                  #
 # ------------------------------------------------------------------ #
-
-
-@app.route("/expenses/<int:id>/edit")
-def edit_expense(id):
-    return "Edit expense — coming in Step 8"
 
 
 @app.route("/expenses/<int:id>/delete")

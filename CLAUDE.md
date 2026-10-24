@@ -99,7 +99,7 @@ pytest -s
 | `GET /profile` | Implemented (Steps 5–6) — redirects to `/login` if signed out or the session's user no longer exists; renders `profile.html` with live data from `get_user_by_id`, `get_summary_stats`, `get_recent_transactions` (10 newest) and `get_category_breakdown`, optionally filtered by date (see below) |
 | `GET /analytics` | Implemented — redirects to `/login` if signed out or the session's user no longer exists; renders the `analytics.html` coming-soon page. Navbar shows an "Analytics" link (signed-in only) with an `active` class via `request.endpoint` |
 | `GET/POST /expenses/add` | Implemented (Step 7) — redirects to `/login` if signed out or the session's user no longer exists; GET renders `add_expense.html` (date defaults to today, categories from `CATEGORIES`); POST validates amount/category/date/description, calls `create_expense`, flashes "Expense added" and redirects to `/profile`; validation errors re-render with 400. Profile's Transaction history card links here |
-| `GET /expenses/<id>/edit` | Stub — Step 8 |
+| `GET/POST /expenses/<id>/edit` | Implemented (Step 8) — redirects to `/login` if signed out or the session's user no longer exists; 404 if the expense is missing or belongs to another user (ownership enforced in SQL); GET renders `edit_expense.html` pre-filled; POST validates with `validate_expense`, calls `update_expense`, flashes "Expense updated" and redirects to `/profile`; validation errors re-render with 400. Each profile transaction row has an Edit link |
 | `GET /expenses/<id>/delete` | Stub — Step 9 |
 
 **`/profile` date filter (Step 6):** optional `?date_from=&date_to=` (ISO, inclusive, both required) filters stats, transactions and categories. Malformed or partial ranges fall back to all-time; a reversed range also flashes an error. Presets: This Month, Last 3 Months, Last 6 Months, All Time.
@@ -115,7 +115,7 @@ pytest -s
 - **Never put DB logic in route functions** — it belongs in `database/db.py`
 - **Never install new packages** mid-feature without flagging it — keep `requirements.txt` in sync
 - **Never use JS frameworks** — the frontend is intentionally vanilla
-- **`database/db.py` only has helpers from completed steps** — `get_db`, `init_db`, `seed_db`, `get_user_by_email`, `create_user`, `authenticate_user`, `get_user_by_id`, `create_expense`, `get_recent_transactions`, `get_summary_stats`, `get_category_breakdown`; do not assume others exist until the step that implements them
+- **`database/db.py` only has helpers from completed steps** — `get_db`, `init_db`, `seed_db`, `get_user_by_email`, `create_user`, `authenticate_user`, `get_user_by_id`, `create_expense`, `get_expense_by_id`, `update_expense`, `get_recent_transactions` (rows include `id`), `get_summary_stats`, `get_category_breakdown`; do not assume others exist until the step that implements them
 - **Dates are stored as ISO `YYYY-MM-DD`** — format them in templates with the `display_date` filter; render money with the `inr` filter (handles `None`)
 - **FK enforcement is manual** — SQLite foreign keys are off by default; `get_db()` must run `PRAGMA foreign_keys = ON` on every connection
 - The app runs on **port 5001**, not the Flask default 5000 — don't change this
